@@ -108,7 +108,7 @@ object CassandraLauncher {
         case jarUrl if jarUrl.getProtocol == "jar" =>
           new File(URI.create(jarUrl.getPath.takeWhile(_ != '!'))).getCanonicalPath
       }
-    }.distinct.to[immutable.Seq]
+    }.distinct.to(immutable.Seq)
   }
 
   /**

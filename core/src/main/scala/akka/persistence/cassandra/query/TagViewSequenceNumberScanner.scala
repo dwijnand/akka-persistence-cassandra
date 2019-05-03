@@ -75,7 +75,7 @@ private[akka] class TagViewSequenceNumberScanner(session: CassandraSession, ps: 
           case ((tagPidSequenceNr, uuid)) =>
             val unixTime = UUIDs.unixTimestamp(uuid)
             (tagPidSequenceNr - 1, UUIDs.startOf(unixTime - 1))
-        }
+        }.toMap
       }
     })
   }

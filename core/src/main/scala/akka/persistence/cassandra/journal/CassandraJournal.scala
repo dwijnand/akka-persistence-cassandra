@@ -211,12 +211,12 @@ class CassandraJournal(cfg: Config) extends AsyncWriteJournal
       // optimization for one single event, which is the typical case
       val s = serialized.head.payload.head
       if (s.tags.isEmpty) BulkTagWrite(Nil, s :: Nil)
-      else BulkTagWrite(s.tags.map(tag => TagWrite(tag, s :: Nil))(collection.breakOut), Nil)
+      else BulkTagWrite(s.tags.iterator.map(tag => TagWrite(tag, s :: Nil)).toSeq, Nil)
     } else {
       val messagesByTag: Map[String, Seq[Serialized]] = serialized
         .flatMap(_.payload)
         .flatMap(s => s.tags.map((_, s)))
-        .groupBy(_._1).mapValues(_.map(_._2))
+        .groupBy(_._1).mapValues(_.map(_._2)).toMap
       val messagesWithoutTag =
         for {
           a <- serialized
@@ -224,9 +224,9 @@ class CassandraJournal(cfg: Config) extends AsyncWriteJournal
           if b.tags.isEmpty
         } yield b
 
-      val writesWithTags: immutable.Seq[TagWrite] = messagesByTag.map {
+      val writesWithTags: immutable.Seq[TagWrite] = messagesByTag.iterator.map {
         case (tag, writes) => TagWrite(tag, writes)
-      }(collection.breakOut)
+      }.toSeq
 
       BulkTagWrite(writesWithTags, messagesWithoutTag)
     }
@@ -329,7 +329,7 @@ class CassandraJournal(cfg: Config) extends AsyncWriteJournal
     }
   }
 
-  private def executeBatch(body: BatchStatement ⇒ Unit, retryPolicy: RetryPolicy): Future[Unit] = {
+  private def executeBatch(body: BatchStatement => Unit, retryPolicy: RetryPolicy): Future[Unit] = {
     val batch = new BatchStatement().setConsistencyLevel(writeConsistency).setRetryPolicy(retryPolicy).asInstanceOf[BatchStatement]
     body(batch)
     session.underlying().flatMap(_.executeAsync(batch)).map(_ => ())

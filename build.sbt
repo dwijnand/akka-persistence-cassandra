@@ -4,7 +4,7 @@ import sbt.Keys._
 import sbtassembly.AssemblyPlugin.autoImport._
 import net.virtualvoid.optimizer._
 
-val AkkaVersion = "2.5.13"
+val AkkaVersion = "2.5.22"
 
 val akkaPersistenceCassandraDependencies = Seq(
   "com.datastax.cassandra"  % "cassandra-driver-core"               % "3.3.1",
@@ -35,7 +35,6 @@ def common: Seq[Setting[_]] = SbtScalariform.scalariformSettings ++ Seq(
     "-unchecked",
     "-deprecation",
     "-Xlint",
-    "-Yno-adapted-args",
     "-Ywarn-dead-code",
     "-Xfuture"
   ),
